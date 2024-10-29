@@ -36,3 +36,39 @@ function lagrangeInterpolation(points) {
     }  
     return c; // Return secret without modulo since we're dealing with positive integers  
 }  
+ 
+
+// API endpoint to calculate the constant term of the polynomial  
+app.post("/calculateSecretCode", (req, res) => {  
+    try{
+    const { keys, ...roots } = req.body; // Destructure input  
+
+    const n = keys.n;  
+    const k = keys.k;  
+
+    // Collect points (x, y)  
+    const points = [];  
+    for (const key in roots) {  
+        const { base, value } = roots[key];  
+        const x = parseInt(key);  
+        const y = decodeValue(parseInt(base), value);  
+        points.push([x, y]);  
+    }  
+
+    // Use only the first 'k' points since that's the minimum required to determine the polynomial  
+    const secret = lagrangeInterpolation(points.slice(0, k));  
+
+    res.json({ constantTerm: Math.abs(secret).toString() }).send(200);
+ } catch(err){
+    res.json({message:err.message}).status(500)
+ } // Send response back to client  
+});  
+
+app.get("/",(req,res)=>{
+    res.send("Hello World").status(200)
+})
+
+// Start the server  
+app.listen(PORT, () => {  
+    console.log(`Server is running on http://localhost:${PORT}`);  
+});
